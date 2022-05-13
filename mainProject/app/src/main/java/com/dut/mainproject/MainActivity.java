@@ -24,25 +24,10 @@ public class MainActivity extends AppCompatActivity {
         btn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-
-                showFlutterUI();
+                startActivity(new Intent(MainActivity.this, TestActivity.class));
+//                showFlutterUI();
             }
         });
-
-    }
-   public void showFlutterUI(){
-       startActivity(
-               FlutterActivity
-                       .withNewEngine()
-                       .initialRoute("home")
-                       .build(this)
-       );
-
-       new Handler().postDelayed(()-> {
-            Intent i = new Intent(MainActivity.this,FlutterActivity.class);
-            startActivity(i);
-            finish();
-        },SPLASH_SCREEN_TIME_OUT);
 
    }
 }

@@ -4,11 +4,13 @@ import 'package:after_layout/after_layout.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:test_module/ui/cubit/flickr_cubit.dart';
 import 'package:test_module/ui/model/flick_data.dart';
 import 'package:test_module/ui/photo_detail.dart';
 import 'package:test_module/ultis/base_listview.dart';
+import 'package:test_module/ultis/constants.dart';
 import 'package:test_module/ultis/keys.dart';
 
 class Home extends StatefulWidget {
@@ -45,44 +47,56 @@ class _HomeState extends State<Home> with AfterLayoutMixin {
           _hasData = true;
         }
       }, builder: (context, state) {
-        return Scaffold(
-          appBar: PreferredSize(
-            preferredSize:
-                Size.fromHeight(Platform.isAndroid ? kToolbarHeight : 44),
-            child: AppBar(
-                title: Text('Flutter Module'),
-                leading: Material(
-                  color: Colors.transparent,
-                  // child: IconButton(
-                  //   onPressed: () {
-                  //   },
-                  //   padding: EdgeInsets.zero,
-                  //   icon: Icon(
-                  //       Platform.isIOS ? Icons.arrow_back_ios : Icons.arrow_back,
-                  //       color: Colors.black,
-                  //       size: 24),
-                  // ),
-                )),
-          ),
-          body: SafeArea(
-            child: Container(
-              color: Color(0xffF4F6FA),
-              child: BaseListView(
-                widget: viewImages(),
-                enableLoadMore: true,
-                key: Keys.navKey,
-                onLoadMore: (onSuccess, onFailed) {
-                  _cubit.getDataTree(method,
-                      page: _indexPage += 1, isLoadMore: true);
+        return WillPopScope(
+          onWillPop: () async {
+            SystemNavigator.pop();
+            return true;
+          },
+          child: Scaffold(
+            appBar: PreferredSize(
+              preferredSize:
+                  Size.fromHeight(Platform.isAndroid ? kToolbarHeight : 44),
+              child: AppBar(
+                  title: Text('Flutter Module'),
+                  leading: Material(
+                    color: Colors.transparent,
+                    child: IconButton(
+                      onPressed: ()async {
+                        final bool result = await Constants.backToNativeChannel
+        .invokeMethod('listen_back_from_module',);
+        print('==========LOG result:$result');
+                        // SystemNavigator.pop();
+                      },
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                          Platform.isIOS
+                              ? Icons.arrow_back_ios
+                              : Icons.arrow_back,
+                          color: Colors.black,
+                          size: 24),
+                    ),
+                  )),
+            ),
+            body: SafeArea(
+              child: Container(
+                color: Color(0xffF4F6FA),
+                child: BaseListView(
+                  widget: viewImages(),
+                  enableLoadMore: true,
+                  key: Keys.navKey,
+                  onLoadMore: (onSuccess, onFailed) {
+                    _cubit.getDataTree(method,
+                        page: _indexPage += 1, isLoadMore: true);
 
-                  Future.delayed(Duration(milliseconds: 3), () {
-                    onSuccess();
-                  });
-                },
-                onRefresh: () {
-                  _indexPage = 1;
-                  _cubit.getDataTree(method, page: 1);
-                },
+                    Future.delayed(Duration(milliseconds: 3), () {
+                      onSuccess();
+                    });
+                  },
+                  onRefresh: () {
+                    _indexPage = 1;
+                    _cubit.getDataTree(method, page: 1);
+                  },
+                ),
               ),
             ),
           ),

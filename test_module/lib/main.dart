@@ -9,6 +9,7 @@ import 'package:test_module/ui/home.dart';
 // void main() => runApp(new MyApp());
 void main() => runApp(chooseWidget(window.defaultRouteName));
 Widget chooseWidget(String route) {
+  print('object --------- $route');
   switch (route) {
     // name of the route defined in the host app
     case 'home':
