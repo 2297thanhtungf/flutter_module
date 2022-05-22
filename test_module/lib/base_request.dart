@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:dio_http_cache/dio_http_cache.dart';
 import 'package:flutter/foundation.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:test_module/ultis/constants.dart';
@@ -11,8 +10,8 @@ class BaseRequest {
   static final _singleton = BaseRequest._internal();
 
   factory BaseRequest() {
-    _dio.interceptors.add(
-        DioCacheManager(CacheConfig(defaultRequestMethod: "GET")).interceptor);
+    // _dio.interceptors.add(
+    //     DioCacheManager(CacheConfig(defaultRequestMethod: "GET")).interceptor);
     bool _showLogDio = false; // Khi nào cần thì bật lên
     // nhiều log quá bug k phát hiện được.
     _dio.interceptors.add(PrettyDioLogger(
@@ -88,10 +87,10 @@ class BaseRequest {
     } else if (requestMethod == RequestMethod.DELETE) {
       response = await _dio.delete(
         path,
-        options:  buildCacheOptions(Duration(days: cacheMaxDay),
-                forceRefresh: forceRefreshCache,
-                maxStale: Duration(days: maxStale))
-            ,
+        // options:  buildCacheOptions(Duration(days: cacheMaxDay),
+        //         forceRefresh: forceRefreshCache,
+        //         maxStale: Duration(days: maxStale))
+            // ,
         queryParameters: queryParams,
       );
     }

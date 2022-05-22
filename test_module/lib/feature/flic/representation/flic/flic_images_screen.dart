@@ -6,29 +6,39 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+import 'package:test_module/feature/flic/data/model/flick_data.dart';
+import 'package:test_module/feature/flic/domain/usecase/get_flic_images.dart';
+import 'package:test_module/feature/flic/representation/blocs/flic_bloc.dart';
 import 'package:test_module/ui/cubit/flickr_cubit.dart';
-import 'package:test_module/ui/model/flick_data.dart';
 import 'package:test_module/ui/photo_detail.dart';
 import 'package:test_module/ultis/base_listview.dart';
 import 'package:test_module/ultis/constants.dart';
 import 'package:test_module/ultis/keys.dart';
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+class FlicImagesScreen extends StatefulWidget {
+  const FlicImagesScreen({Key? key}) : super(key: key);
 
   @override
-  State<Home> createState() => _HomeState();
+  State<FlicImagesScreen> createState() => _FlicImagesScreenState();
 }
 
-class _HomeState extends State<Home> with AfterLayoutMixin {
+class _FlicImagesScreenState extends State<FlicImagesScreen>
+    with AfterLayoutMixin {
   FlickrCubit _cubit = FlickrCubit();
+
+  late FlicBloc _flicBloc;
+
   final String method = 'flickr.interestingness.getList';
-  late Photos _dataImage;
+  // late Photos _dataImage;
   String urlImage = 'https://live.staticflickr.com/';
   int _indexPage = 1;
   bool _hasData = false;
   @override
   void initState() {
+    FlicBloc(getFlicImagesUseCase: GetIt.I<GetFlicImagesUseCase>());
+
+    _flicBloc = context.read<FlicBloc>();
     super.initState();
   }
 
@@ -38,15 +48,8 @@ class _HomeState extends State<Home> with AfterLayoutMixin {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => _cubit,
-      child: BlocConsumer<FlickrCubit, FlickrState>(
-          listener: (context, state) async {
-        if (state is GetDataTreeSuccess) {
-          _dataImage = _cubit.flickrData.photos;
-          _hasData = true;
-        }
-      }, builder: (context, state) {
+    return BlocBuilder<FlicBloc, FlicState>(
+      builder: (context, state) {
         return WillPopScope(
           onWillPop: () async {
             SystemNavigator.pop();
@@ -61,10 +64,12 @@ class _HomeState extends State<Home> with AfterLayoutMixin {
                   leading: Material(
                     color: Colors.transparent,
                     child: IconButton(
-                      onPressed: ()async {
-                        final bool result = await Constants.backToNativeChannel
-        .invokeMethod('listen_back_from_module',);
-        print('==========LOG result:$result');
+                      onPressed: () async {
+                        final bool result =
+                            await Constants.backToNativeChannel.invokeMethod(
+                          'listen_back_from_module',
+                        );
+                        print('==========LOG result:$result');
                         // SystemNavigator.pop();
                       },
                       padding: EdgeInsets.zero,
@@ -85,8 +90,12 @@ class _HomeState extends State<Home> with AfterLayoutMixin {
                   enableLoadMore: true,
                   key: Keys.navKey,
                   onLoadMore: (onSuccess, onFailed) {
-                    _cubit.getDataTree(method,
-                        page: _indexPage += 1, isLoadMore: true);
+                    context
+                        .read<FlicBloc>()
+                        .getFlicImages(method: method, index: _indexPage += 1,isLoadMore: true);
+
+                    // _cubit.getDataTree(method,
+                    //     page: _indexPage += 1, isLoadMore: true);
 
                     Future.delayed(Duration(milliseconds: 3), () {
                       onSuccess();
@@ -94,22 +103,99 @@ class _HomeState extends State<Home> with AfterLayoutMixin {
                   },
                   onRefresh: () {
                     _indexPage = 1;
-                    _cubit.getDataTree(method, page: 1);
+
+context.read<FlicBloc>().getFlicImages(
+                        method: method,
+                        index: 1,
+                        isLoadMore: false);
+                    // _cubit.getDataTree(method, page: 1);
                   },
                 ),
               ),
             ),
           ),
         );
-      }),
+      },
     );
   }
 
+  // @override
+  // Widget build(BuildContext context) {
+  //   return BlocProvider(
+  //     create: (context) => _cubit,
+  //     child: BlocConsumer<FlickrCubit, FlickrState>(
+  //         listener: (context, state) async {
+  //       if (state is GetDataTreeSuccess) {
+  //         _dataImage = _cubit.flickrData.photos;
+  //         _hasData = true;
+  //       }
+  //     }, builder: (context, state) {
+  //       return WillPopScope(
+  //         onWillPop: () async {
+  //           SystemNavigator.pop();
+  //           return true;
+  //         },
+  //         child: Scaffold(
+  //           appBar: PreferredSize(
+  //             preferredSize:
+  //                 Size.fromHeight(Platform.isAndroid ? kToolbarHeight : 44),
+  //             child: AppBar(
+  //                 title: Text('Flutter Module'),
+  //                 leading: Material(
+  //                   color: Colors.transparent,
+  //                   child: IconButton(
+  //                     onPressed: () async {
+  //                       final bool result =
+  //                           await Constants.backToNativeChannel.invokeMethod(
+  //                         'listen_back_from_module',
+  //                       );
+  //                       print('==========LOG result:$result');
+  //                       // SystemNavigator.pop();
+  //                     },
+  //                     padding: EdgeInsets.zero,
+  //                     icon: Icon(
+  //                         Platform.isIOS
+  //                             ? Icons.arrow_back_ios
+  //                             : Icons.arrow_back,
+  //                         color: Colors.black,
+  //                         size: 24),
+  //                   ),
+  //                 )),
+  //           ),
+  //           body: SafeArea(
+  //             child: Container(
+  //               color: Color(0xffF4F6FA),
+  //               child: BaseListView(
+  //                 widget: viewImages(),
+  //                 enableLoadMore: true,
+  //                 key: Keys.navKey,
+  //                 onLoadMore: (onSuccess, onFailed) {
+  //                   _cubit.getDataTree(method,
+  //                       page: _indexPage += 1, isLoadMore: true);
+
+  //                   Future.delayed(Duration(milliseconds: 3), () {
+  //                     onSuccess();
+  //                   });
+  //                 },
+  //                 onRefresh: () {
+  //                   _indexPage = 1;
+  //                   _cubit.getDataTree(method, page: 1);
+  //                 },
+  //               ),
+  //             ),
+  //           ),
+  //         ),
+  //       );
+  //     }),
+  //   );
+  // }
+
   Widget viewImages() {
+    Photos? data = context.read<FlicBloc>().flicData?.photos;
     return _hasData
         ? ListView.builder(
             physics: BouncingScrollPhysics(),
-            itemCount: _dataImage.photo.length,
+            itemCount: data?.photo.length,
             itemBuilder: (context, index) {
               return Padding(
                 padding: EdgeInsets.only(
@@ -121,7 +207,7 @@ class _HomeState extends State<Home> with AfterLayoutMixin {
                         builder: (context) {
                           return PhotoView(
                               url:
-                                  '$urlImage${_dataImage.photo[index].server}/${_dataImage.photo[index].id}_${_dataImage.photo[index].secret}.jpg');
+                                  '$urlImage${data?.photo[index].server}/${data?.photo[index].id}_${data?.photo[index].secret}.jpg');
                         });
                   },
                   onDoubleTap: () {},
@@ -138,7 +224,7 @@ class _HomeState extends State<Home> with AfterLayoutMixin {
                               topLeft: Radius.circular(8),
                               bottomLeft: Radius.circular(8)),
                           child: Image.network(
-                            '$urlImage${_dataImage.photo[index].server}/${_dataImage.photo[index].id}_${_dataImage.photo[index].secret}.jpg',
+                            '$urlImage${data?.photo[index].server}/${data?.photo[index].id}_${data?.photo[index].secret}.jpg',
                             alignment: Alignment.centerLeft,
                           ),
                         ),
@@ -147,7 +233,7 @@ class _HomeState extends State<Home> with AfterLayoutMixin {
                         ),
                         Expanded(
                           child: Text(
-                            '${_dataImage.photo[index].title}',
+                            '${data?.photo[index].title}',
                             style: TextStyle(
                                 color: Color(0xff25282B),
                                 fontFamily: 'SVN-Poppins',

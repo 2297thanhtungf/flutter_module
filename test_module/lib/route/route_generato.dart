@@ -1,14 +1,14 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
+import 'package:test_module/feature/flic/representation/flic/flic_images_screen.dart';
 import 'package:test_module/route/routes.dart';
 import 'package:test_module/ui/error_view.dart';
-import 'package:test_module/ui/home.dart';
 
 Route<dynamic>? generateRoute(RouteSettings settings) {
   final dynamic args = settings.arguments;
   switch (settings.name) {
     case Routes.home:
-      return defaultBuilder(settings: settings, screen: Home()); 
+      return defaultBuilder(settings: settings, screen: FlicImagesScreen()); 
     case Routes.error:
       return defaultBuilder(settings: settings, screen: ErrorView()); 
 
