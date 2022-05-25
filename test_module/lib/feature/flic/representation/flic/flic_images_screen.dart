@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:after_layout/after_layout.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,7 +13,6 @@ import 'package:test_module/ui/cubit/flickr_cubit.dart';
 import 'package:test_module/ui/photo_detail.dart';
 import 'package:test_module/ultis/base_listview.dart';
 import 'package:test_module/ultis/constants.dart';
-import 'package:test_module/ultis/keys.dart';
 
 class FlicImagesScreen extends StatefulWidget {
   const FlicImagesScreen({Key? key}) : super(key: key);
@@ -27,7 +25,7 @@ class _FlicImagesScreenState extends State<FlicImagesScreen>
     with AfterLayoutMixin {
   FlickrCubit _cubit = FlickrCubit();
 
-  late FlicBloc _flicBloc;
+  // late FlicBloc _flicBloc;
 
   final String method = 'flickr.interestingness.getList';
   // late Photos _dataImage;
@@ -36,159 +34,89 @@ class _FlicImagesScreenState extends State<FlicImagesScreen>
   bool _hasData = false;
   @override
   void initState() {
-    FlicBloc(getFlicImagesUseCase: GetIt.I<GetFlicImagesUseCase>());
 
-    _flicBloc = context.read<FlicBloc>();
+    // FlicBloc(getFlicImagesUseCase: GetIt.I<GetFlicImagesUseCase>());
+    // _flicBloc = context.read<FlicBloc>();
     super.initState();
   }
 
   void initData() {
-    _cubit.getDataTree(method, page: _indexPage);
+    // _cubit.getDataTree(method, page: _indexPage);
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<FlicBloc, FlicState>(
-      builder: (context, state) {
-        return WillPopScope(
-          onWillPop: () async {
-            SystemNavigator.pop();
-            return true;
-          },
-          child: Scaffold(
-            appBar: PreferredSize(
-              preferredSize:
-                  Size.fromHeight(Platform.isAndroid ? kToolbarHeight : 44),
-              child: AppBar(
-                  title: Text('Flutter Module'),
-                  leading: Material(
-                    color: Colors.transparent,
-                    child: IconButton(
-                      onPressed: () async {
-                        final bool result =
-                            await Constants.backToNativeChannel.invokeMethod(
-                          'listen_back_from_module',
-                        );
-                        print('==========LOG result:$result');
-                        // SystemNavigator.pop();
-                      },
-                      padding: EdgeInsets.zero,
-                      icon: Icon(
-                          Platform.isIOS
-                              ? Icons.arrow_back_ios
-                              : Icons.arrow_back,
-                          color: Colors.black,
-                          size: 24),
-                    ),
-                  )),
-            ),
-            body: SafeArea(
-              child: Container(
-                color: Color(0xffF4F6FA),
-                child: BaseListView(
-                  widget: viewImages(),
-                  enableLoadMore: true,
-                  key: Keys.navKey,
-                  onLoadMore: (onSuccess, onFailed) {
-                    context
-                        .read<FlicBloc>()
-                        .getFlicImages(method: method, index: _indexPage += 1,isLoadMore: true);
+    return BlocProvider<FlicBloc>(
+      create: (context) => FlicBloc(getFlicImagesUseCase: GetIt.I<GetFlicImagesUseCase>()),
+      child: WillPopScope(
+        onWillPop: () async {
+          SystemNavigator.pop();
+          return true;
+        },
+        child: Scaffold(
+          appBar: PreferredSize(
+            preferredSize:
+                Size.fromHeight(Platform.isAndroid ? kToolbarHeight : 44),
+            child: AppBar(
+                title: Text('Flutter Module'),
+                leading: Material(
+                  color: Colors.transparent,
+                  child: IconButton(
+                    onPressed: () async {
+                      final bool result =
+                          await Constants.backToNativeChannel.invokeMethod(
+                        'listen_back_from_module',
+                      );
+                      print('==========LOG result:$result');
+                      // SystemNavigator.pop();
+                    },
+                    padding: EdgeInsets.zero,
+                    icon: Icon(
+                        Platform.isIOS
+                            ? Icons.arrow_back_ios
+                            : Icons.arrow_back,
+                        color: Colors.black,
+                        size: 24),
+                  ),
+                )),
+          ),
+          body: SafeArea(
+            child: Container(
+              color: Color(0xffF4F6FA),
+              child: BaseListView(
+                widget: viewImages(),
+                // widget: Container(
+                //   height: 300,
+                //   width: double.infinity,
+                //   color: Colors.red,
+                // ),
+                enableLoadMore: true,
+                key: GlobalKey<FormState>(),
+                onLoadMore: (onSuccess, onFailed) {
+                  context.read<FlicBloc>().getFlicImages(
+                      method: method, index: _indexPage += 1, isLoadMore: true);
 
-                    // _cubit.getDataTree(method,
-                    //     page: _indexPage += 1, isLoadMore: true);
+                  // _cubit.getDataTree(method,
+                  //     page: _indexPage += 1, isLoadMore: true);
 
-                    Future.delayed(Duration(milliseconds: 3), () {
-                      onSuccess();
-                    });
-                  },
-                  onRefresh: () {
-                    _indexPage = 1;
+                  Future.delayed(Duration(milliseconds: 3), () {
+                    onSuccess();
+                  });
+                },
+                onRefresh: () {
+                  _indexPage = 1;
 
-context.read<FlicBloc>().getFlicImages(
-                        method: method,
-                        index: 1,
-                        isLoadMore: false);
-                    // _cubit.getDataTree(method, page: 1);
-                  },
-                ),
+                  context.read<FlicBloc>().getFlicImages(
+                      method: method, index: 1, isLoadMore: false);
+                  // _cubit.getDataTree(method, page: 1);
+                },
               ),
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return BlocProvider(
-  //     create: (context) => _cubit,
-  //     child: BlocConsumer<FlickrCubit, FlickrState>(
-  //         listener: (context, state) async {
-  //       if (state is GetDataTreeSuccess) {
-  //         _dataImage = _cubit.flickrData.photos;
-  //         _hasData = true;
-  //       }
-  //     }, builder: (context, state) {
-  //       return WillPopScope(
-  //         onWillPop: () async {
-  //           SystemNavigator.pop();
-  //           return true;
-  //         },
-  //         child: Scaffold(
-  //           appBar: PreferredSize(
-  //             preferredSize:
-  //                 Size.fromHeight(Platform.isAndroid ? kToolbarHeight : 44),
-  //             child: AppBar(
-  //                 title: Text('Flutter Module'),
-  //                 leading: Material(
-  //                   color: Colors.transparent,
-  //                   child: IconButton(
-  //                     onPressed: () async {
-  //                       final bool result =
-  //                           await Constants.backToNativeChannel.invokeMethod(
-  //                         'listen_back_from_module',
-  //                       );
-  //                       print('==========LOG result:$result');
-  //                       // SystemNavigator.pop();
-  //                     },
-  //                     padding: EdgeInsets.zero,
-  //                     icon: Icon(
-  //                         Platform.isIOS
-  //                             ? Icons.arrow_back_ios
-  //                             : Icons.arrow_back,
-  //                         color: Colors.black,
-  //                         size: 24),
-  //                   ),
-  //                 )),
-  //           ),
-  //           body: SafeArea(
-  //             child: Container(
-  //               color: Color(0xffF4F6FA),
-  //               child: BaseListView(
-  //                 widget: viewImages(),
-  //                 enableLoadMore: true,
-  //                 key: Keys.navKey,
-  //                 onLoadMore: (onSuccess, onFailed) {
-  //                   _cubit.getDataTree(method,
-  //                       page: _indexPage += 1, isLoadMore: true);
-
-  //                   Future.delayed(Duration(milliseconds: 3), () {
-  //                     onSuccess();
-  //                   });
-  //                 },
-  //                 onRefresh: () {
-  //                   _indexPage = 1;
-  //                   _cubit.getDataTree(method, page: 1);
-  //                 },
-  //               ),
-  //             ),
-  //           ),
-  //         ),
-  //       );
-  //     }),
-  //   );
-  // }
 
   Widget viewImages() {
     Photos? data = context.read<FlicBloc>().flicData?.photos;

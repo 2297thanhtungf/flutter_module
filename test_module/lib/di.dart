@@ -7,7 +7,7 @@ import 'package:test_module/ultis/flavor_config.dart';
 
 GetIt get = GetIt.instance;
 
-void setupLocator({required FlavorConfig flavorConfig}) {
+void setupLocator() {
   /// use case
   get.registerLazySingleton(() => GetFlicImagesUseCase(repository: get()));
 

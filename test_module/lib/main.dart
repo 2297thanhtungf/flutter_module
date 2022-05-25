@@ -1,6 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:route_observer_mixin/route_observer_mixin.dart';
 import 'package:test_module/app.dart';
 import 'package:test_module/ultis/app_locale.dart';
 import 'package:test_module/ultis/flavor_config.dart';
@@ -12,7 +13,7 @@ Future<void> main() async {
   // await EasyLocalization.ensureInitialized();
   // await FlavorConfig.instance.init(Flavors.prod);
   // //TODO get Header
-  setupLocator(flavorConfig: FlavorConfig.instance);
+  setupLocator();
   // // setPathUrlStrategy();
 
   // EasyLoading.instance
@@ -22,7 +23,7 @@ Future<void> main() async {
   //   ..userInteractions = false
   //   ..dismissOnTap = false;
 
-    return runApp((RootApp()));
+    return runApp(RouteObserverProvider(child: (RootApp())));
 
 
   // runApp(EasyLocalization(
